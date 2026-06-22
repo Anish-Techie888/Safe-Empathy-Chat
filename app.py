@@ -91,8 +91,6 @@ if page == "1. User Communication Portal":
 
     if "live_logs" not in st.session_state:
         st.session_state.live_logs = [
-            {"Timestamp": "10 mins ago", "Source": "WhatsApp", "Claim": "Salt water prevents radiation", "Risk Level": "Medium"},
-            {"Timestamp": "20 mins ago", "Source": "Forum", "Claim": "ATMs closing at midnight", "Risk Level": "High"}
         ]
 
     col_chat, col_metrics = st.columns([1.8, 1.2])
@@ -212,7 +210,11 @@ if page == "1. User Communication Portal":
         st.session_state.latest_analysis = analysis_results
 
         # Pushing data to the B2B Dashboard
-        risk_text = str(analysis_results.get('risk_score', 50)) + "%"
+
+        score = analysis_results.get('risk_score', 50)
+        risk_label = "High" if score > 70 else "Medium" if score > 30 else "Low"
+        risk_text = f"{risk_label} ({score}%)"
+
         st.session_state.live_logs.insert(0, {
             "Timestamp": "Just Now",
             "Source": "Live Portal",
@@ -227,16 +229,33 @@ elif page == "2. B2B Analytics Dashboard":
     st.caption("Global telemetry metrics tracking localized platform stability.")
     st.markdown("---")
 
+   # --- DYNAMIC KPI MATH ---
+    live_scans = len(st.session_state.live_logs)
+    high_risk_count = sum(1 for log in st.session_state.live_logs if "High" in log["Risk Level"])
+
+    # Maintain massive Enterprise Baseline, but ADD live session stats!
+    total_scans = 24891 + live_scans
+    total_responses = 18402 + live_scans
+    total_claims = 1248 + high_risk_count
+    total_mitigated = 4821 + live_scans
+
     kpi_col1, kpi_col2, kpi_col3 = st.columns(3)
     kpi_col4, kpi_col5, kpi_col6 = st.columns(3)
 
-    with kpi_col1: st.metric(label="Total Scanned Messages", value="24,891", delta="+1,142 today")
-    with kpi_col2: st.metric(label="Interacted Responses Generated", value="18,402", delta="98.7% SLA")
-    with kpi_col3: st.metric(label="Extracted User Moods Profiled", value="4 Categories", delta="Anxiety Dominant")
-    with kpi_col4: st.metric(label="Misconceptions Logged", value="1,248 Claims", delta="+42 high threat")
-    with kpi_col5: st.metric(label="RAG Database Queries", value="34,109", delta="< 0.2s latency")
-    with kpi_col6: st.metric(label="Total Misinformation Suppressed", value="4,821 Incidents", delta="84% Mitigation Rate")
+    with kpi_col1: st.metric(label="Total Scanned Messages", value=f"{total_scans:,}", delta=f"+{1142 + live_scans} today")
+    with kpi_col2: st.metric(label="Interacted Responses Generated", value=f"{total_responses:,}", delta="98.7% SLA")
+    with kpi_col3: st.metric(label="Extracted User Moods Profiled", value="4 Categories", delta="Live Tracking Active")
+    with kpi_col4: st.metric(label="Misconceptions Logged", value=f"{total_claims:,} Claims", delta=f"+{42 + high_risk_count} high threat")
+    with kpi_col5: st.metric(label="RAG Database Queries", value=f"{34109 + live_scans:,}", delta="< 0.2s latency")
+    with kpi_col6: st.metric(label="Total Misinformation Suppressed", value=f"{total_mitigated:,} Incidents", delta="84% Mitigation Rate")
 
+    st.markdown("---")
+    st.subheader("Real-Time RAG Database Incident Logs")
+
+    if st.session_state.live_logs:
+        st.dataframe(pd.DataFrame(st.session_state.live_logs), use_container_width=True)
+    else:
+        st.info("System Standby. Awaiting live traffic from User Portal.")
     st.markdown("---")
     st.subheader("Real-Time RAG Database Incident Logs")
 
