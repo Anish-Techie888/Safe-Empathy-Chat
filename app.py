@@ -256,8 +256,4 @@ elif page == "2. B2B Analytics Dashboard":
         st.dataframe(pd.DataFrame(st.session_state.live_logs), use_container_width=True)
     else:
         st.info("System Standby. Awaiting live traffic from User Portal.")
-    st.markdown("---")
-    st.subheader("Real-Time RAG Database Incident Logs")
-
-    # Renders the live session data from the chat
-    st.dataframe(pd.DataFrame(st.session_state.live_logs), use_container_width=True)
+  
