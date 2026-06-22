@@ -6,32 +6,48 @@ st.set_page_config(page_title="SafeEmpathy Platform", page_icon="🛡️", layou
 
 custom_ui_css = """
 <style>
-    /* PRECISE GLITCH FIX: Hides the broken text font, but keeps the sidebar toggle container functional */
-    header {display: none !important;}
+    /* 1. FIX: Keep the header transparent instead of deleting it, so the button survives! */
+    header {background: transparent !important;}
+    .stDeployButton, [data-testid="stMainMenu"] {display: none !important;}
 
-    [data-testid="collapsedControl"] button {
+    /* 2. CUSTOM OPEN MENU BUTTON */
+    /* Transforms the glitchy icon into a sleek, clickable button */
+    [data-testid="collapsedControl"] {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
-        background: rgba(255, 255, 255, 0.08) !important;
+        background: rgba(20, 26, 22, 0.95) !important;
+        border: 1px solid rgba(60, 208, 112, 0.4) !important;
         border-radius: 8px !important;
-        padding: 5px 12px !important;
-        min-width: 70px !important;
+        padding: 5px 15px !important;
+        min-width: 120px !important;
+        top: 15px !important;
+        left: 15px !important;
+        z-index: 99999 !important;
+        transition: all 0.3s ease !important;
     }
 
-    [data-testid="collapsedControl"] button span {
-        display: none !important; /* Hides 'keyboard_double_arrow_right' text completely */
+    [data-testid="collapsedControl"]:hover {
+        background: rgba(60, 208, 112, 0.15) !important;
+        transform: scale(1.05) !important;
     }
 
-    [data-testid="collapsedControl"] button::after {
-        content: "📂 Menu" !important;
-        font-size: 13px !important;
+    /* Hide the glitchy Streamlit text inside the button */
+    [data-testid="collapsedControl"] * {
+        display: none !important;
+    }
+
+    /* Inject our clean "Menu" text */
+    [data-testid="collapsedControl"]::after {
+        content: "📂 Open Menu" !important;
+        font-size: 14px !important;
         color: #3CD070 !important;
         font-weight: 600 !important;
-        font-family: system-ui, sans-serif;
+        font-family: 'SF Pro Display', sans-serif !important;
+        display: block !important;
     }
 
-    /* BACKGROUND LAYERS */
+    /* 3. BACKGROUND LAYERS */
     @keyframes slowZoom {
         0% { background-size: 100%; }
         100% { background-size: 105%; }
@@ -45,7 +61,7 @@ custom_ui_css = """
         animation: slowZoom 25s ease-in-out infinite alternate !important;
     }
 
-    /* SURFACE GLASS CARDS */
+    /* 4. SURFACE GLASS CARDS */
     .main .block-container {
         background: rgba(20, 26, 22, 0.85);
         backdrop-filter: blur(14px);
@@ -161,27 +177,49 @@ if page == "1. User Communication Portal":
             </div>
             """, unsafe_allow_html=True)
 
-    # CRITICAL: Moved out of columns to layout baseline to eliminate form submission enter-glitch
+    # ---------------------------------------------------------
+    # CHAT INPUT LOGIC (Moved outside the column layout to fix the Enter Key glitch)
+    # ---------------------------------------------------------
     st.markdown("---")
-    if user_query := st.chat_input("Paste incoming message or chat forward here..."):
+
+    # Optional Bonus: Pre-set buttons for the live demo!
+    st.markdown("**Quick Demo Scenarios:**")
+    demo1, demo2, demo3 = st.columns(3)
+    if demo1.button("🚨 Simulate Exam Panic"):
+        st.session_state.demo_query = "Guys, I heard the B.Tech physics exam at IEM is postponed to next month, is that true? I'm stressed!"
+    if demo2.button("🚇 Simulate Transit Rumor"):
+        st.session_state.demo_query = "Someone just forwarded a message that the Kolkata Metro is completely shutting down at 4 PM today!"
+    if demo3.button("💧 Simulate Fake Health News"):
+        st.session_state.demo_query = "My aunt said drinking boiling water kills the virus inside your cells. Should I do it?"
+
+    # Check if a button was pressed, or if the user typed manually
+    user_input = st.session_state.get("demo_query") or st.chat_input("Paste incoming message or chat forward here...")
+
+    if user_input:
+        if "demo_query" in st.session_state:
+            del st.session_state["demo_query"] # Clear it so it doesn't loop
+
         with col_chat:
             with st.chat_message("user", avatar="👤"):
-                st.markdown(user_query)
-        st.session_state.messages.append({"role": "user", "content": user_query})
+                st.markdown(user_input)
+        st.session_state.messages.append({"role": "user", "content": user_input})
 
         with st.spinner("Analyzing message vectors..."):
-            analysis_results = analyze_message(user_query)
-            final_reply = generate_safe_response(user_query, analysis_results)
+            analysis_results = analyze_message(user_input)
+            final_reply = generate_safe_response(user_input, analysis_results)
 
         st.session_state.messages.append({"role": "assistant", "content": final_reply})
         st.session_state.latest_analysis = analysis_results
+
+        # Pushing data to the B2B Dashboard
         risk_text = str(analysis_results.get('risk_score', 50)) + "%"
         st.session_state.live_logs.insert(0, {
             "Timestamp": "Just Now",
             "Source": "Live Portal",
-            "Claim": user_query[:40] + "...", # Only show the first 40 characters
+            "Claim": user_input[:40] + "...",
             "Risk Level": risk_text
         })
+
         st.rerun()
 
 elif page == "2. B2B Analytics Dashboard":
@@ -202,9 +240,5 @@ elif page == "2. B2B Analytics Dashboard":
     st.markdown("---")
     st.subheader("Real-Time RAG Database Incident Logs")
 
-    st.markdown("---")
-    st.subheader("Real-Time RAG Database Incident Logs")
-
-    # Render the live session state data instead of the fake static data
+    # Renders the live session data from the chat
     st.dataframe(pd.DataFrame(st.session_state.live_logs), use_container_width=True)
-   # st.dataframe(incident_logs, use_container_width=True)
