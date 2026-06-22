@@ -11,12 +11,44 @@ llm = ChatGroq(model="llama-3.3-70b-versatile", temperature=0.2)
 
 # --- SETUP RAG PIPELINE (Trusted Local Database) ---
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+# --- SETUP RAG PIPELINE (Trusted Local Database) ---
+embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 trusted_documents = [
-    Document(page_content="The government has confirmed that all ATMs will remain fully operational. There are no plans to shut down cash machines."),
-    Document(page_content="Boiling water does not cure viral infections. Viruses live inside the body's cells where hot water cannot reach them."),
-    Document(page_content="Drinking salt water does not prevent radiation poisoning and can cause severe dehydration.")
+    # 🏥 1. PUBLIC HEALTH & MEDICAL HOAXES (Highly prevalent)
+    Document(page_content="There is no scientific evidence that garlic, boiling water, specific spices, or holding your breath cure viral infections. Always consult certified medical professionals for treatment."),
+    Document(page_content="Vaccines undergo rigorous global safety testing. They do not alter human DNA, contain microchips, or track individuals. Furthermore, they are not a cause of global economic leverage."),
+    Document(page_content="Drinking salt water, colloidal silver, or honey lemon tea does not prevent radiation poisoning or viral infections and can cause severe bodily harm."),
+    Document(page_content="Viral infections cannot be cured by weather changes alone, nor does the virus fail to survive in specific seasons."),
+
+    # 💰 2. FINANCIAL PANICS & BANKING
+    Document(page_content="The central government and Reserve Bank of India (RBI) have NOT announced any new demonetization, currency bans, or freezing of bank accounts. All current legal tender remains fully valid."),
+    Document(page_content="There are no plans to permanently shut down ATM networks or cash machines. Banking infrastructure remains fully operational."),
+    Document(page_content="Messages claiming the government is offering free recharge plans, laptops, or direct cash transfers via a provided link are phishing scams designed to steal financial data."),
+
+    # 📱 3. DIGITAL SCAMS & PLATFORM RUMORS
+    Document(page_content="WhatsApp and Facebook are free services. Any forwarded message claiming you must forward it to a set number of people or pay a fee to prevent your account from being deleted is a complete hoax."),
+    Document(page_content="Receiving a specific video file or answering a call from a specific international number will not instantly hack your phone or wipe your hard drive."),
+    Document(page_content="Telecom operators do not disable SIM cards if you fail to click a verification link sent via SMS. Official KYC updates are only done through official carrier apps or stores."),
+
+    # 🏛️ 4. CIVIC, LEGAL & ELECTION RUMORS (A major source of polarization)
+    Document(page_content="Official voting information is only managed by the Election Commission. Viral links asking for Aadhar or personal details to 'register to vote online' are data theft scams."),
+    Document(page_content="The government is not actively monitoring or recording all civilian phone calls and social media messages under new communication rules. This is a recurring privacy hoax."),
+    Document(page_content="There is no new government action announcing 'Punishment for Spreading Fake News on social media' as circulated in doctored messages."),
+
+    # 🌪️ 5. CRISIS, DISASTER & CRIME HOAXES (Known to incite panic and violence)
+    Document(page_content="Earthquakes cannot be scientifically predicted with exact times or dates. Any viral message claiming a 'mega earthquake' is scheduled for a specific time is categorically false."),
+    Document(page_content="The official national emergency contact number is 112. Viral messages distributing alternative 'new, faster' emergency numbers are often hoaxes that waste critical time during crises."),
+    Document(page_content="Viral videos or images allegedly showing child abductions are often doctored or shared out of context. Always verify such claims with local law enforcement before sharing, as these rumors can lead to violence."),
+
+    # 📍 6. HYPER-LOCAL EXAMPLES (Keep these for your live demo!)
+    Document(page_content="The B.Tech First Year Engineering Physics and Mathematics semester exams at IEM College and MAKAUT are proceeding strictly as scheduled. No postponements have been announced."),
+    Document(page_content="The Kolkata Metro and local train services are running on their normal schedules. Rumors of a sudden city-wide transit shutdown are completely false.")
 ]
+
+# Build the high-speed local vector store
+vector_store = FAISS.from_documents(trusted_documents, embeddings)
+retriever = vector_store.as_retriever(search_kwargs={"k": 1})
 
 vector_store = FAISS.from_documents(trusted_documents, embeddings)
 retriever = vector_store.as_retriever(search_kwargs={"k": 1})
