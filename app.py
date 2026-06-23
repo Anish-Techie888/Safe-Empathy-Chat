@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from fpdf import FPDF
 from ai_engine import analyze_message, generate_safe_response
 
 st.set_page_config(page_title="SafeEmpathy Platform", page_icon="🛡️", layout="wide", initial_sidebar_state="expanded")
@@ -156,22 +157,50 @@ if page == "1. User Communication Portal":
             st.markdown(f"**Verification Verdict:**<br>{res['fact_check_verdict']}", unsafe_allow_html=True)
             st.markdown("---")
 
-            html_report = f"""
-            <html>
-            <body style="font-family: sans-serif; padding: 20px; background: #0b0f19; color: #ffffff;">
-                <div style="background: #131924; padding: 25px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08);">
-                    <h2 style="color: #3CD070;">🛡️ SafeEmpathy Audit Report</h2>
-                    <p><strong>Analysis Status:</strong> {res['misinformation_risk'].upper()} RISK ({score}%)</p>
-                    <p><strong>Verdict:</strong> {res['fact_check_verdict']}</p>
-                </div>
-            </body>
-            </html>
-            """
+            # --- PDF GENERATION LOGIC ---
+            pdf = FPDF()
+            pdf.add_page()
+
+            # Title
+            pdf.set_font("helvetica", "B", 18)
+            pdf.set_text_color(60, 208, 112) # SafeEmpathy Green
+            pdf.cell(0, 15, "SafeEmpathy Verification Audit", ln=True, align="C")
+            pdf.ln(5) # Line break
+
+            # Risk Status
+            pdf.set_font("helvetica", "B", 12)
+            if score > 50:
+                pdf.set_text_color(220, 53, 69) # Red for high risk
+            else:
+                pdf.set_text_color(60, 208, 112) # Green for low risk
+
+            pdf.cell(0, 10, f"Analysis Status: {res['misinformation_risk'].upper()} THREAT ({score}% Certainty)", ln=True)
+            pdf.ln(5)
+
+            # Verdict Body
+            pdf.set_font("helvetica", "B", 12)
+            pdf.set_text_color(0, 0, 0) # Black text
+            pdf.cell(0, 8, "Verified Fact Check Summary:", ln=True)
+
+            pdf.set_font("helvetica", "", 11)
+            # multi_cell automatically wraps text to the next line
+            # We remove emojis as standard PDF fonts don't support them
+            clean_verdict = res['fact_check_verdict'].replace("🛡️", "").replace("🚨", "")
+            pdf.multi_cell(0, 8, clean_verdict)
+
+            pdf.ln(15)
+            pdf.set_font("helvetica", "I", 9)
+            pdf.set_text_color(100, 100, 100)
+            pdf.cell(0, 10, "Generated securely via SafeEmpathy Enterprise RAG Architecture Engine.", align="C")
+
+            # Convert to pure bytes in memory
+            pdf_bytes = bytes(pdf.output())
+
             st.download_button(
-                label="📥 Export Report (HTML)",
-                data=html_report,
-                file_name="SafeEmpathy_Report.html",
-                mime="text/html"
+                label="📥 Export Report (PDF)",
+                data=pdf_bytes,
+                file_name="SafeEmpathy_Report.pdf",
+                mime="application/pdf"
             )
         else:
             st.markdown("""
