@@ -15,33 +15,35 @@ embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
 
 trusted_documents = [
-    # 🏥 1. PUBLIC HEALTH & MEDICAL HOAXES (Highly prevalent)
-    Document(page_content="There is no scientific evidence that garlic, boiling water, specific spices, or holding your breath cure viral infections. Always consult certified medical professionals for treatment."),
-    Document(page_content="Vaccines undergo rigorous global safety testing. They do not alter human DNA, contain microchips, or track individuals. Furthermore, they are not a cause of global economic leverage."),
-    Document(page_content="Drinking salt water, colloidal silver, or honey lemon tea does not prevent radiation poisoning or viral infections and can cause severe bodily harm."),
-    Document(page_content="Viral infections cannot be cured by weather changes alone, nor does the virus fail to survive in specific seasons."),
+    # 🤖 NEW: AI TECH PANICS & DEEPFAKES
+    Document(page_content="Artificial Intelligence (AI) models are software algorithms and do not possess consciousness, self-awareness, or the ability to autonomously take over global computer networks or critical infrastructure."),
+    Document(page_content="AI voice cloning and video deepfakes are synthetic media. They cannot automatically bypass secure bank biometric systems or multi-factor authentication (MFA) without physical security breaches."),
+    Document(page_content="AI tools cannot independently make binding legal arrests or launch medical operations without human authorization and oversight by verified professionals."),
 
-    # 💰 2. FINANCIAL PANICS & BANKING
+    # 🌪️ NEW: WEATHER CONSPIRACIES & CLIMATE HOAXES
+    Document(page_content="Extreme weather conditions such as cyclones, heatwaves, and storms are caused by natural thermodynamic atmospheric pressures. Research facilities like HAARP cannot create, direct, or manipulate weather patterns or trigger artificial earthquakes."),
+    Document(page_content="Weather alerts claiming an exact hour or day for a localized natural disaster (like a 'mega earthquake' or flash flood) are unscientific. Official warnings are strictly handled by the India Meteorological Department (IMD) or national disaster authorities."),
+    Document(page_content="Cloud seeding uses completely safe silver iodide or salt particles to encourage rain in drought zones. It does not create toxic chemical rain, poison local groundwater, or drop biological agents."),
+
+    # 🏥 PUBLIC HEALTH & MEDICAL HOAXES
+    Document(page_content="There is no scientific evidence that garlic, boiling water, specific spices, or holding your breath cure viral infections. Always consult certified medical professionals for treatment."),
+    Document(page_content="Vaccines undergo rigorous global safety testing. They do not alter human DNA, contain microchips, or track individuals."),
+    Document(page_content="Drinking salt water, colloidal silver, or honey lemon tea does not prevent radiation poisoning or viral infections and can cause severe bodily harm."),
+
+    # 💰 FINANCIAL PANICS & BANKING
     Document(page_content="The central government and Reserve Bank of India (RBI) have NOT announced any new demonetization, currency bans, or freezing of bank accounts. All current legal tender remains fully valid."),
     Document(page_content="There are no plans to permanently shut down ATM networks or cash machines. Banking infrastructure remains fully operational."),
     Document(page_content="Messages claiming the government is offering free recharge plans, laptops, or direct cash transfers via a provided link are phishing scams designed to steal financial data."),
 
-    # 📱 3. DIGITAL SCAMS & PLATFORM RUMORS
+    # 📱 DIGITAL SCAMS & PLATFORM RUMORS
     Document(page_content="WhatsApp and Facebook are free services. Any forwarded message claiming you must forward it to a set number of people or pay a fee to prevent your account from being deleted is a complete hoax."),
-    Document(page_content="Receiving a specific video file or answering a call from a specific international number will not instantly hack your phone or wipe your hard drive."),
     Document(page_content="Telecom operators do not disable SIM cards if you fail to click a verification link sent via SMS. Official KYC updates are only done through official carrier apps or stores."),
 
-    # 🏛️ 4. CIVIC, LEGAL & ELECTION RUMORS (A major source of polarization)
+    # 🏛️ CIVIC, LEGAL & ELECTION RUMORS
     Document(page_content="Official voting information is only managed by the Election Commission. Viral links asking for Aadhar or personal details to 'register to vote online' are data theft scams."),
     Document(page_content="The government is not actively monitoring or recording all civilian phone calls and social media messages under new communication rules. This is a recurring privacy hoax."),
-    Document(page_content="There is no new government action announcing 'Punishment for Spreading Fake News on social media' as circulated in doctored messages."),
 
-    # 🌪️ 5. CRISIS, DISASTER & CRIME HOAXES (Known to incite panic and violence)
-    Document(page_content="Earthquakes cannot be scientifically predicted with exact times or dates. Any viral message claiming a 'mega earthquake' is scheduled for a specific time is categorically false."),
-    Document(page_content="The official national emergency contact number is 112. Viral messages distributing alternative 'new, faster' emergency numbers are often hoaxes that waste critical time during crises."),
-    Document(page_content="Viral videos or images allegedly showing child abductions are often doctored or shared out of context. Always verify such claims with local law enforcement before sharing, as these rumors can lead to violence."),
-
-    # 📍 6. HYPER-LOCAL EXAMPLES (Keep these for your live demo!)
+    # 📍 HYPER-LOCAL EXAMPLES (Demo Triggers)
     Document(page_content="The B.Tech First Year Engineering Physics and Mathematics semester exams at IEM College and MAKAUT are proceeding strictly as scheduled. No postponements have been announced."),
     Document(page_content="The Kolkata Metro and local train services are running on their normal schedules. Rumors of a sudden city-wide transit shutdown are completely false.")
 ]
