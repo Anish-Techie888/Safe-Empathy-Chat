@@ -4,14 +4,23 @@ from ai_engine import analyze_message, generate_safe_response
 
 st.set_page_config(page_title="SafeEmpathy Platform", page_icon="🛡️", layout="wide", initial_sidebar_state="expanded")
 
+# --- SAFE INTEGER HELPER FUNCTION ---
+def get_safe_score(val):
+    try:
+        if isinstance(val, (int, float)):
+            return int(val)
+        # Extract digits only to strip out spaces, quotes, or '%' signs
+        cleaned = "".join([c for c in str(val) if c.isdigit()])
+        return int(cleaned) if cleaned else 50
+    except:
+        return 50
+
 custom_ui_css = """
 <style>
-    /* 1. FIX: Keep the header transparent instead of deleting it, so the button survives! */
+    /* PRECISE GLITCH FIX */
     header {background: transparent !important;}
     .stDeployButton, [data-testid="stMainMenu"] {display: none !important;}
 
-    /* 2. CUSTOM OPEN MENU BUTTON */
-    /* Transforms the glitchy icon into a sleek, clickable button */
     [data-testid="collapsedControl"] {
         display: flex !important;
         align-items: center !important;
@@ -32,12 +41,10 @@ custom_ui_css = """
         transform: scale(1.05) !important;
     }
 
-    /* Hide the glitchy Streamlit text inside the button */
     [data-testid="collapsedControl"] * {
         display: none !important;
     }
 
-    /* Inject our clean "Menu" text */
     [data-testid="collapsedControl"]::after {
         content: "📂 Open Menu" !important;
         font-size: 14px !important;
@@ -47,7 +54,6 @@ custom_ui_css = """
         display: block !important;
     }
 
-    /* 3. BACKGROUND LAYERS */
     @keyframes slowZoom {
         0% { background-size: 100%; }
         100% { background-size: 105%; }
@@ -61,7 +67,6 @@ custom_ui_css = """
         animation: slowZoom 25s ease-in-out infinite alternate !important;
     }
 
-    /* 4. SURFACE GLASS CARDS */
     .main .block-container {
         background: rgba(20, 26, 22, 0.85);
         backdrop-filter: blur(14px);
@@ -90,8 +95,7 @@ if page == "1. User Communication Portal":
         st.session_state.messages = []
 
     if "live_logs" not in st.session_state:
-        st.session_state.live_logs = [
-        ]
+        st.session_state.live_logs = []
 
     col_chat, col_metrics = st.columns([1.8, 1.2])
 
@@ -117,12 +121,13 @@ if page == "1. User Communication Portal":
 
         if st.session_state.messages and "latest_analysis" in st.session_state:
             res = st.session_state.latest_analysis
+            safe_score = get_safe_score(res.get('risk_score', 50))
             st.markdown(f"""
             <div style="background: rgba(10, 15, 20, 0.6); padding: 1rem; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.05); margin-top: 0.5rem;">
                 <p style="color: #64748b; font-family: 'Courier New', monospace; font-size: 0.8rem; margin: 0;">
                     <span style="color: #3CD070;">> [System]</span> Analyzing lexical sentiment vectors... <span style="color: #3CD070;">OK</span><br>
                     <span style="color: #3CD070;">> [Engine]</span> Emotion: <b>{res.get('detected_emotion', 'N/A').upper()}</b><br>
-                    <span style="color: #3CD070;">> [RAG]</span> Database Threat Certainty: <b>{res.get('risk_score', '0')}%</b>
+                    <span style="color: #3CD070;">> [RAG]</span> Database Threat Certainty: <b>{safe_score}%</b>
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -137,7 +142,7 @@ if page == "1. User Communication Portal":
             st.markdown("---")
 
             st.markdown("### Misinformation Status")
-            score = res.get("risk_score", 50)
+            score = get_safe_score(res.get("risk_score", 50))
 
             if score > 70:
                 st.error(f"🚨 HIGH RISK DETECTED: {score}%")
@@ -175,12 +180,7 @@ if page == "1. User Communication Portal":
             </div>
             """, unsafe_allow_html=True)
 
-    # ---------------------------------------------------------
-    # CHAT INPUT LOGIC (Moved outside the column layout to fix the Enter Key glitch)
-    # ---------------------------------------------------------
     st.markdown("---")
-
-    # Optional Bonus: Pre-set buttons for the live demo!
     st.markdown("**Quick Demo Scenarios:**")
     demo1, demo2, demo3 = st.columns(3)
     if demo1.button("🚨 Simulate Exam Panic"):
@@ -190,12 +190,11 @@ if page == "1. User Communication Portal":
     if demo3.button("💧 Simulate Fake Health News"):
         st.session_state.demo_query = "My aunt said drinking boiling water kills the virus inside your cells. Should I do it?"
 
-    # Check if a button was pressed, or if the user typed manually
     user_input = st.session_state.get("demo_query") or st.chat_input("Paste incoming message or chat forward here...")
 
     if user_input:
         if "demo_query" in st.session_state:
-            del st.session_state["demo_query"] # Clear it so it doesn't loop
+            del st.session_state["demo_query"]
 
         with col_chat:
             with st.chat_message("user", avatar="👤"):
@@ -209,9 +208,7 @@ if page == "1. User Communication Portal":
         st.session_state.messages.append({"role": "assistant", "content": final_reply})
         st.session_state.latest_analysis = analysis_results
 
-        # Pushing data to the B2B Dashboard
-
-        score = analysis_results.get('risk_score', 50)
+        score = get_safe_score(analysis_results.get('risk_score', 50))
         risk_label = "High" if score > 70 else "Medium" if score > 30 else "Low"
         risk_text = f"{risk_label} ({score}%)"
 
@@ -229,11 +226,9 @@ elif page == "2. B2B Analytics Dashboard":
     st.caption("Global telemetry metrics tracking localized platform stability.")
     st.markdown("---")
 
-   # --- DYNAMIC KPI MATH ---
     live_scans = len(st.session_state.live_logs)
     high_risk_count = sum(1 for log in st.session_state.live_logs if "High" in log["Risk Level"])
 
-    # Maintain massive Enterprise Baseline, but ADD live session stats!
     total_scans = 24891 + live_scans
     total_responses = 18402 + live_scans
     total_claims = 1248 + high_risk_count
@@ -256,4 +251,3 @@ elif page == "2. B2B Analytics Dashboard":
         st.dataframe(pd.DataFrame(st.session_state.live_logs), use_container_width=True)
     else:
         st.info("System Standby. Awaiting live traffic from User Portal.")
-  
